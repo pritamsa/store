@@ -6,8 +6,6 @@ import com.store.services.webapi.models.Discount;
 import com.store.services.webapi.models.Purchase;
 import com.store.services.webapi.responses.DiscountResponse;
 import java.util.List;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,12 +29,6 @@ public class StoreController {
     @Autowired
     Repository repository;
 
-    static final Logger logger = Logger.getLogger(StoreController.class);
-
-    StoreController() {
-      BasicConfigurator.configure();
-    }
-
   /**
    * Creates discount setting
    *
@@ -49,14 +41,13 @@ public class StoreController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity createDiscountSetting(@RequestHeader
+    public ResponseEntity<Object> createDiscountSetting(@RequestHeader
         final HttpHeaders headers, @RequestBody final Discount discount)
         {
 
       try {
         repository.addNewDiscountSetting(discount);
       }catch (Exception e) {
-        logger.error("Exception while creating discount", e);
         ApplicationError apiError = new ApplicationError(HttpStatus.INTERNAL_SERVER_ERROR, "Internal "
             + "Error. Please try again later.", e);
         return buildResponseEntity(apiError);
@@ -78,7 +69,7 @@ public class StoreController {
       produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE
   )
-  public ResponseEntity createPurchase(@RequestHeader
+  public ResponseEntity<Object> createPurchase(@RequestHeader
   final HttpHeaders headers, @RequestBody final Purchase purchase) {
 
     ApplicationError apiError = null;
@@ -100,7 +91,7 @@ public class StoreController {
 
       }
     } catch (Exception e) {
-      logger.error("Exception while creating purchase", e);
+
       apiError = new ApplicationError(HttpStatus.INTERNAL_SERVER_ERROR, "Internal "
           + "Error. Please try again later.", e);
       return buildResponseEntity(apiError);
