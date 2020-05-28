@@ -6,6 +6,7 @@ import com.store.services.webapi.datastore.discount.DiscountSetting;
 import com.store.services.webapi.models.Discount;
 import com.store.services.webapi.models.Purchase;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,14 +19,12 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class Repository {
-    public int val;
 
     private DiscountSetting currentDiscountSetting;
     private List<DiscountSetting> discountSettingArchives;
     private CustomerPurchase customerPurchase;
     private CustomerDiscount customerDiscount;
 
-    public Repository() {}
     private static class SingletonClassHolder {
         static final Repository SINGLE_INSTANCE = new Repository();
     }
@@ -71,7 +70,7 @@ public class Repository {
    * discounts.
    * @param purchase purchase by customer
    */
-    public void addCustomerPurchase(final Purchase purchase) throws CloneNotSupportedException {
+    public void addCustomerPurchase(final Purchase purchase) {
       if (customerPurchase == null) {
         customerPurchase = new CustomerPurchase();
       }
@@ -90,13 +89,9 @@ public class Repository {
       if (currentDiscountSetting != null) {
         final int eligPurchaseCt = customerPurchase.getDiscountEligiblePurchasesCount(purchase
             .getCustomerId());
-        if (eligPurchaseCt >= currentDiscountSetting.getMinTransactionsRequired()) {
-
-          customerDiscount.addUpdateNewDiscount(purchase.getCustomerId(), currentDiscountSetting,
-              eligPurchaseCt/currentDiscountSetting.getMinTransactionsRequired());
-          customerPurchase.adjustDiscountEligiblePurchaseCt(purchase.getCustomerId(),
-              currentDiscountSetting.getMinTransactionsRequired());
-        }
+        updateCustomerDiscountPurchase(
+            eligPurchaseCt >= currentDiscountSetting.getMinTransactionsRequired(),
+            purchase.getCustomerId(), eligPurchaseCt);
       }
     }
 
@@ -110,7 +105,7 @@ public class Repository {
         return customerDiscount.getDiscounts(customerId);
 
       }
-      return null;
+    return Collections.emptyList();
     }
 
     public boolean isDiscountValid(final Purchase purchase) {
@@ -139,12 +134,8 @@ public class Repository {
 
             if(entry != null && entry.getValue() != null && entry.getValue() >=
                 currentDiscountSetting.getMinTransactionsRequired()) {
-            if (customerDiscount != null) {
-                customerDiscount.addUpdateNewDiscount(entry.getKey(), currentDiscountSetting,
-                    entry.getValue()/currentDiscountSetting.getMinTransactionsRequired());
-                customerPurchase.adjustDiscountEligiblePurchaseCt(entry.getKey(),
-                    currentDiscountSetting.getMinTransactionsRequired());
-              }
+              updateCustomerDiscountPurchase(customerDiscount != null, entry.getKey(),
+                  entry.getValue());
 
             }
           }
@@ -153,7 +144,16 @@ public class Repository {
       }
     }
 
-    /**
+  private void updateCustomerDiscountPurchase(boolean b, String key, Integer value) {
+    if (b) {
+      customerDiscount.addUpdateNewDiscount(key, currentDiscountSetting,
+          value / currentDiscountSetting.getMinTransactionsRequired());
+      customerPurchase.adjustDiscountEligiblePurchaseCt(key,
+          currentDiscountSetting.getMinTransactionsRequired());
+    }
+  }
+
+  /**
     * This method gives total discount offered based on discount code.
     *
     */

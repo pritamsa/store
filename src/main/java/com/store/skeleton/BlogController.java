@@ -6,8 +6,6 @@ import com.store.services.webapi.models.Discount;
 import com.store.services.webapi.models.Purchase;
 import com.store.services.webapi.responses.DiscountResponse;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +13,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Controller with all the apis.
@@ -40,9 +44,8 @@ public class BlogController {
    * @param headers nothing specific
    * @return 500 if internal error. 201 for happy path
    */
-    @RequestMapping(
+    @PostMapping(
             path = "/discount",
-            method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
@@ -70,9 +73,8 @@ public class BlogController {
    * @param headers nothing specific
    * @return 500 if internal error. 201 for happy path
    */
-  @RequestMapping(
+  @PostMapping(
       path = "/purchase",
-      method = RequestMethod.POST,
       produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE
   )
@@ -114,12 +116,10 @@ public class BlogController {
    *
    */
 
-  @RequestMapping(
+  @GetMapping(
       path = "/totaldiscounts",
-      method = RequestMethod.GET,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity getAllDiscounts() throws
-      Exception {
+  public ResponseEntity getAllDiscounts()  {
 
     Long totalDiscount = repository.getTotalDiscountsOffered("");
     return ResponseEntity.status(HttpStatus.OK).body("Total "
@@ -131,12 +131,10 @@ public class BlogController {
    * @param discountCode : discount code
    */
 
-  @RequestMapping(
+  @GetMapping(
       path = "/totaldiscounts/{discountCode}",
-      method = RequestMethod.GET,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity getTotalDiscounts(@PathVariable final String discountCode) throws
-      Exception {
+  public ResponseEntity getTotalDiscounts(@PathVariable final String discountCode)  {
 
       Long totalDiscount = repository.getTotalDiscountsOffered(discountCode);
       return ResponseEntity.status(HttpStatus.OK).body("DiscountCode:" + discountCode + " total "
@@ -147,16 +145,15 @@ public class BlogController {
    * Reads total discounts for a customer id.
    * @param customerId : customer id
    */
-  @RequestMapping(
+  @GetMapping(
       path = "/discounts/{customerId}",
-      method = RequestMethod.GET,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity getDiscounts(@PathVariable final String customerId) throws Exception {
+  public ResponseEntity getDiscounts(@PathVariable final String customerId)  {
       List<com.store.services.webapi.datastore.discount.Discount> lst = repository
           .getDiscounts(customerId);
 
 
-    if (lst == null || lst.size() == 0) {
+    if (lst == null || lst.isEmpty()) {
       ApplicationError apiError = new ApplicationError(HttpStatus.OK, "This customer has not "
           + "earned any discount");
       return buildResponseEntity(apiError);

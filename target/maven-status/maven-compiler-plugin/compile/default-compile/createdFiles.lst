@@ -1,9 +1,0 @@
-com/store/services/webapi/models/Purchase.class
-com/store/skeleton/SpringFoxConfig.class
-com/store/services/webapi/errors/ApplicationError.class
-com/store/skeleton/ApplicationConfiguration.class
-com/store/services/webapi/datastore/customer/Purchase.class
-com/store/services/webapi/utils/Constants.class
-com/store/services/webapi/datastore/Repository.class
-com/store/services/webapi/responses/DiscountResponse.class
-com/store/services/webapi/datastore/Repository$SingletonClassHolder.class
