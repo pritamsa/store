@@ -1,25 +1,45 @@
 package com.store.skeleton;
 
-import com.store.services.webapi.datastore.SingletonClass;
-import com.store.services.webapi.datastore.discount.DiscountSetting;
+import com.store.services.webapi.datastore.Repository;
+import com.store.services.webapi.errors.ApplicationError;
 import com.store.services.webapi.models.Discount;
+import com.store.services.webapi.models.Purchase;
+import com.store.services.webapi.responses.DiscountResponse;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Controller with all the apis.
+ */
 @RestController
-@RequestMapping(path = "/store")
+@RequestMapping(path = "/api")
 public class BlogController {
 
-    private DiscountSetting discountSetting;
+    @Autowired
+    Repository repository;
 
-    @RequestMapping(value = "/foos", method = RequestMethod.POST)
-    @ResponseBody
-    public String postFoos() {
-        return "Post some Foos";
+    static final Logger logger = Logger.getLogger(BlogController.class);
+
+    BlogController() {
+      BasicConfigurator.configure();
     }
 
+  /**
+   * Creates discount setting
+   *
+   * @param discount the discount setting
+   * @param headers nothing specific
+   * @return 500 if internal error. 201 for happy path
+   */
     @RequestMapping(
             path = "/discount",
             method = RequestMethod.POST,
@@ -27,19 +47,130 @@ public class BlogController {
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity createDiscountSetting(@RequestHeader
-        final HttpHeaders headers, @RequestBody final Discount discount) {
+        final HttpHeaders headers, @RequestBody final Discount discount)
+        {
 
-        return null;
+      try {
+        repository.addNewDiscountSetting(discount);
+      }catch (Exception e) {
+        logger.error("Exception while creating discount", e);
+        ApplicationError apiError = new ApplicationError(HttpStatus.INTERNAL_SERVER_ERROR, "Internal "
+            + "Error. Please try again later.", e);
+        return buildResponseEntity(apiError);
+      }
+
+      return ResponseEntity.status(HttpStatus.CREATED).body("Discount Created");
 
     }
 
-    @RequestMapping("/")
-    public String index() {
-        if (SingletonClass.getInstance().val == 0) {
-            SingletonClass.getInstance().val = 8;
-        }
-        SingletonClass.getInstance().val++;
+  /**
+   * Creates a purchase transaction
+   *
+   * @param purchase the purchase
+   * @param headers nothing specific
+   * @return 500 if internal error. 201 for happy path
+   */
+  @RequestMapping(
+      path = "/purchase",
+      method = RequestMethod.POST,
+      produces = MediaType.APPLICATION_JSON_VALUE,
+      consumes = MediaType.APPLICATION_JSON_VALUE
+  )
+  public ResponseEntity createPurchase(@RequestHeader
+  final HttpHeaders headers, @RequestBody final Purchase purchase) {
 
-        return "Congratulations from BlogController.java " + SingletonClass.getInstance().val;
+    ApplicationError apiError = null;
+
+    try {
+      if (!repository.isDiscountValid(purchase)) {
+        apiError = new ApplicationError(HttpStatus.BAD_REQUEST, "You have entered incorrect "
+            + "discount code or amount. "
+            + "Please try the purchase with correct discount or without a discount");
+        return buildResponseEntity(apiError);
+
+      }
+      if (purchase.isValid()) {
+        repository.addCustomerPurchase(purchase);
+      } else {
+        apiError = new ApplicationError(HttpStatus.BAD_REQUEST, "You have entered an incorrect "
+            + "purchase. Please try the purchase with a correct purchase amount and customer id.");
+        return buildResponseEntity(apiError);
+
+      }
+    } catch (Exception e) {
+      logger.error("Exception while creating purchase", e);
+      apiError = new ApplicationError(HttpStatus.INTERNAL_SERVER_ERROR, "Internal "
+          + "Error. Please try again later.", e);
+      return buildResponseEntity(apiError);
+
     }
+
+    return ResponseEntity.status(HttpStatus.CREATED).body("Your purchase is successful");
+
+  }
+
+  /**
+   * Reads total discounts
+   *
+   */
+
+  @RequestMapping(
+      path = "/totaldiscounts",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity getAllDiscounts() throws
+      Exception {
+
+    Long totalDiscount = repository.getTotalDiscountsOffered("");
+    return ResponseEntity.status(HttpStatus.OK).body("Total "
+        + "discount offered:" + totalDiscount);
+  }
+
+  /**
+   * Reads total discounts for a discount code.
+   * @param discountCode : discount code
+   */
+
+  @RequestMapping(
+      path = "/totaldiscounts/{discountCode}",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity getTotalDiscounts(@PathVariable final String discountCode) throws
+      Exception {
+
+      Long totalDiscount = repository.getTotalDiscountsOffered(discountCode);
+      return ResponseEntity.status(HttpStatus.OK).body("DiscountCode:" + discountCode + " total "
+          + "discount:" + totalDiscount);
+  }
+
+  /**
+   * Reads total discounts for a customer id.
+   * @param customerId : customer id
+   */
+  @RequestMapping(
+      path = "/discounts/{customerId}",
+      method = RequestMethod.GET,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity getDiscounts(@PathVariable final String customerId) throws Exception {
+      List<com.store.services.webapi.datastore.discount.Discount> lst = repository
+          .getDiscounts(customerId);
+
+
+    if (lst == null || lst.size() == 0) {
+      ApplicationError apiError = new ApplicationError(HttpStatus.OK, "This customer has not "
+          + "earned any discount");
+      return buildResponseEntity(apiError);
+
+    }
+    DiscountResponse response = new DiscountResponse();
+    response.setCustomerId(customerId);
+    response.setDiscountList(lst);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+  private ResponseEntity<Object> buildResponseEntity(ApplicationError apiError) {
+    return new ResponseEntity<>(apiError, apiError.getStatus());
+  }
+
+
 }

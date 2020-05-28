@@ -1,28 +1,36 @@
 package com.store.services.webapi.datastore.customer;
 
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import lombok.Data;
 
-@Component
+/**
+ * Embeds data about customer purchases and the purchases that are eligible for earning discounts.
+ */
+@Data
 public class CustomerPurchase {
-    private HashMap<String, List<String>> allPurchases = new HashMap<>();
+    private HashMap<String, List<Purchase>> allPurchases = new HashMap<>();
     private HashMap<String, Integer> discountEligiblePurchasesCt = new HashMap<>();
 
-    public void add(final String customerId, String productCode) {
+  /**
+   * This method adds new purchase transaction
+   * @param purchase purchase transaction
+   * @param customerId id of customer.
+   */
+    public void add(final Purchase purchase, final String customerId) {
         synchronized (allPurchases) {
-            List<String> currentPurchases = allPurchases.get(customerId);
+            List<Purchase> currentPurchases = allPurchases.get(customerId);
             if (currentPurchases == null) {
                 currentPurchases = new ArrayList<>(1);
-                currentPurchases.add(productCode);
             }
+            currentPurchases.add(purchase);
+
             allPurchases.put(customerId, currentPurchases);
         }
         synchronized (discountEligiblePurchasesCt) {
             Integer discountEligiblePurchases = discountEligiblePurchasesCt.get(customerId);
-            if (discountEligiblePurchases == null) {
+            if (discountEligiblePurchases == null || discountEligiblePurchases.intValue() == 0) {
                 discountEligiblePurchases = 1;
             } else {
                 discountEligiblePurchases++;
@@ -31,15 +39,27 @@ public class CustomerPurchase {
         }
     }
 
-    public Integer getDiscountEligiblePurchases(String customerId) {
-        synchronized (discountEligiblePurchasesCt) {
-            Integer discountEligiblePurchases = discountEligiblePurchasesCt.get(customerId);
-            if (discountEligiblePurchases == null) {
-                return 0;
-            }
-            return discountEligiblePurchases;
+  /**
+   * This method adjusts ndiscount eligible purchase counts.
+   * @param count count of discount eligible purchase transaction
+   * @param customerId id of customer.
+   */
+    public void adjustDiscountEligiblePurchaseCt(String customerId, int count) {
+    synchronized (discountEligiblePurchasesCt) {
+      Integer ct = discountEligiblePurchasesCt.get(customerId);
+      if (ct != null && ct >= count ) {
+        ct = ct - count;
+        discountEligiblePurchasesCt.put(customerId, ct);
+      }
+      }
+    }
 
-        }
+  /**
+   * This method reads discount eligible purchase count
+   * @param customerId id of customer.
+   */
+    public  int getDiscountEligiblePurchasesCount(String customerId) {
+      return discountEligiblePurchasesCt.get(customerId) == null ? 0 : discountEligiblePurchasesCt.get(customerId);
     }
 
 }
