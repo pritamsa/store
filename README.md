@@ -95,13 +95,14 @@
 >        }
 >     ]
 > }`
-4.	Customer 8 makes 3 more purchases and he now earns more discount of code “ttq” .
-5.	Make a GET request to /api/discounts/8 and see that customer 8 has total of $600 discount of code “ttq”. 
-6.	Admin can now make a get request to http://localhost:8080/api/totaldiscounts/ttq to find that the system has given out total discount of  $600 with discount code = ttq
-7.	Now another customer with id “2” makes 4 purchases of $200 each. (Please check #1 above to learn how to make purchase requests.)
-8.	Since the customer 2 has made 4 requests, he earns discount of $300 of code “ttq”. You can double check this by making a GET request /api/discounts/2
-9.	The customer 2 now makes 2 more purchases. Since he has made total of 6 purchases, he has total of $600 discount with code “ttq” .
-10.	Customer 8 now makes purchases using the discount. To do so, make a POST request to /api/purchase with the following JSON
+
+*	Customer 8 makes 3 more purchases and he now earns more discount of code “ttq” .
+*	Make a GET request to /api/discounts/8 and see that customer 8 has total of $600 discount of code “ttq”. 
+*	Admin can now make a get request to http://localhost:8080/api/totaldiscounts/ttq to find that the system has given out total discount of  $600 with discount code = ttq
+*	Now another customer with id “2” makes 4 purchases of $200 each. (Please check #1 above to learn how to make purchase requests.)
+*	Since the customer 2 has made 4 requests, he earns discount of $300 of code “ttq”. You can double check this by making a GET request /api/discounts/2
+*	The customer 2 now makes 2 more purchases. Since he has made total of 6 purchases, he has total of $600 discount with code “ttq” .
+*	Customer 8 now makes purchases using the discount. To do so, make a POST request to /api/purchase with the following JSON
 {
 	"customerId": "8",
 	"cost":200,
