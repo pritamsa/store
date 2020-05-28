@@ -26,14 +26,14 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(path = "/api")
-public class BlogController {
+public class StoreController {
 
     @Autowired
     Repository repository;
 
-    static final Logger logger = Logger.getLogger(BlogController.class);
+    static final Logger logger = Logger.getLogger(StoreController.class);
 
-    BlogController() {
+    StoreController() {
       BasicConfigurator.configure();
     }
 

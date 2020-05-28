@@ -7,7 +7,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class Discount {
   private String discountCode;
-
   private int discountAmount;
 
 }

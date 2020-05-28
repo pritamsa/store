@@ -44,7 +44,7 @@ public class CustomerPurchase {
    * @param count count of discount eligible purchase transaction
    * @param customerId id of customer.
    */
-    public void adjustDiscountEligiblePurchaseCt(String customerId, int count) {
+    public void adjustDiscountEligiblePurchaseCt(final String customerId, final int count) {
     synchronized (discountEligiblePurchasesCt) {
       Integer ct = discountEligiblePurchasesCt.get(customerId);
       if (ct != null && ct >= count ) {
@@ -58,7 +58,7 @@ public class CustomerPurchase {
    * This method reads discount eligible purchase count
    * @param customerId id of customer.
    */
-    public  int getDiscountEligiblePurchasesCount(String customerId) {
+    public  int getDiscountEligiblePurchasesCount(final String customerId) {
       return discountEligiblePurchasesCt.get(customerId) == null ? 0 : discountEligiblePurchasesCt.get(customerId);
     }
 

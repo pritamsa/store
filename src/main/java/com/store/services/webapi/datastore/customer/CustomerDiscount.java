@@ -41,7 +41,7 @@ public class CustomerDiscount {
    * @param purchase purchase made by customer.
 
    */
-  public void adjustCustomerDiscount(Purchase purchase) {
+  public void adjustCustomerDiscount(final Purchase purchase) {
 
     if (purchase.getDiscountAmountUsed() == 0) {
       return;
@@ -75,8 +75,8 @@ public class CustomerDiscount {
    * @param multiplier for multiple of discounts
 
    */
-  public void addUpdateNewDiscount(String customerId, DiscountSetting discountSetting, int
-      multiplier) {
+  public void addUpdateNewDiscount(final String customerId, final DiscountSetting discountSetting,
+      final int multiplier) {
     synchronized (discounts) {
       Map<String, Discount> discs = discounts.get(customerId);
       int existingAmountOfSameCode = 0;
@@ -114,7 +114,7 @@ public class CustomerDiscount {
    * @param customerId Id of customer
    * @return List of discounts
    */
-  public List<Discount> getDiscounts(String customerId) {
+  public List<Discount> getDiscounts(final String customerId) {
     List<Discount> discountList = new ArrayList<>();
     if (customerId != null) {
       Map<String, Discount> discs = discounts.get(customerId);

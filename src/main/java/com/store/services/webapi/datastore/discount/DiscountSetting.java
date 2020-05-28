@@ -12,5 +12,4 @@ public class DiscountSetting {
     private int minTransactionsRequired;
     private int discountAmount;
 
-
 }

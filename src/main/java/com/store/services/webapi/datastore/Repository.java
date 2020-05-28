@@ -144,7 +144,8 @@ public class Repository {
       }
     }
 
-  private void updateCustomerDiscountPurchase(boolean b, String key, Integer value) {
+  private void updateCustomerDiscountPurchase(final boolean b, final String key, final Integer
+      value) {
     if (b) {
       customerDiscount.addUpdateNewDiscount(key, currentDiscountSetting,
           value / currentDiscountSetting.getMinTransactionsRequired());
@@ -157,7 +158,7 @@ public class Repository {
     * This method gives total discount offered based on discount code.
     *
     */
-    public Long getTotalDiscountsOffered(String discountCode) {
+    public Long getTotalDiscountsOffered(final String discountCode) {
       if(customerDiscount != null) {
 
         if (discountCode != null && discountCode.trim().length() > 0) {
